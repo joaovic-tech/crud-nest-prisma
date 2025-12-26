@@ -6,39 +6,40 @@ import {
   Param,
   Delete,
   UseFilters,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { UserService } from '../../modules/user/user.service';
 import { CreateUserDto } from '../../modules/user/dto/create-user.dto';
-import { UserModel } from 'generated/prisma/models';
 import { UserExceptionFilter } from './filters/prisma-client-exception.filter';
+import { UserEntity } from './entities/user.entity';
 
 @Controller()
 @UseFilters(new UserExceptionFilter())
+@UseInterceptors(ClassSerializerInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('user')
-  public create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  public async create(@Body() createUserDto: CreateUserDto) {
+    const user = await this.userService.create(createUserDto);
+    return new UserEntity(user);
   }
 
   @Get('users')
-  async findAll(): Promise<UserModel[]> {
-    return this.userService.findAll({});
+  public async findAll() {
+    const users = await this.userService.findAll({});
+    return users.map((user) => new UserEntity(user));
   }
 
   @Get('user/:id')
-  findOne(@Param('id') id: number) {
-    return this.userService.findOne(+id);
+  public async findOne(@Param('id') id: number) {
+    const user = await this.userService.findOne({ id: +id });
+    return new UserEntity(user);
   }
 
-  // @Patch('user/:id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.userService.update(+id, updateUserDto);
-  // }
-
   @Delete('user/:id')
-  remove(@Param('id') id: number) {
+  public remove(@Param('id') id: number) {
     return this.userService.remove(id);
   }
 }

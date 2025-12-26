@@ -3,6 +3,7 @@ import { UserAlreadyExistsException } from './exceptions/user-already-exists.exc
 import { Prisma, User } from 'generated/prisma';
 import { PrismaService } from 'prisma.service';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -12,16 +13,29 @@ export class UserService {
   ) {}
 
   async create(data: Prisma.UserCreateInput) {
+    const { email, password, books, name } = data;
+
     try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (user !== null) {
+        throw new UserAlreadyExistsException();
+      }
+
+      const hashedPassword = await argon2.hash(password);
+
       return await this.prisma.user.create({
-        data,
+        data: {
+          email,
+          password: hashedPassword,
+          books,
+          name,
+        },
       });
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new UserAlreadyExistsException();
-        }
-      }
+      this.logger.error(e);
       throw e;
     }
   }
@@ -43,9 +57,11 @@ export class UserService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id: id } });
+      const user = await this.prisma.user.findUnique({
+        where: userWhereUniqueInput,
+      });
 
       if (!user) {
         throw new UserNotFoundException();
