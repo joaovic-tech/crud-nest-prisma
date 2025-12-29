@@ -1,62 +1,85 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, User } from 'generated/prisma';
+import { Prisma } from 'generated/prisma';
 import { PrismaService } from 'prisma.service';
 import * as argon2 from 'argon2';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: Prisma.UserCreateInput) {
-    const { email, password, books, name } = data;
-    const hashedPassword = await argon2.hash(password);
+  async create(data: CreateUserDto): Promise<UserEntity> {
+    const hashedPassword = await argon2.hash(data.password);
 
-    return await this.prisma.user.create({
+    const newUser = await this.prisma.user.create({
       data: {
-        email,
+        email: data.email,
         password: hashedPassword,
-        books,
-        name,
+        name: data.name,
       },
     });
+
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+    };
   }
 
-  async findAll(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.UserWhereUniqueInput;
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-  }): Promise<User[]> {
-    const { skip, take, cursor, where, orderBy } = params;
-    return this.prisma.user.findMany({
-      skip,
-      take,
-      cursor,
-      where,
-      orderBy,
+  async findAll(): Promise<UserEntity[]> {
+    const users = await this.prisma.user.findMany();
+
+    return users.map((user) => {
+      const userEntity: UserEntity = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      };
+
+      return userEntity;
     });
   }
 
-  async findOne(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
-    const user = await this.prisma.user.findUniqueOrThrow({
+  async findOne(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<UserEntity> {
+    const { id, email, name } = await this.prisma.user.findUniqueOrThrow({
       where: userWhereUniqueInput,
     });
 
-    return user;
+    const userEntity: UserEntity = {
+      id,
+      email,
+      name,
+    };
+
+    return userEntity;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return this.prisma.user.update({
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+    const { email, name } = await this.prisma.user.update({
       where: { id },
       data: { ...updateUserDto },
     });
+
+    const userEntity: UserEntity = {
+      id,
+      email,
+      name,
+    };
+
+    return userEntity;
   }
 
   async remove(id: number) {
-    return await this.prisma.user.delete({
+    const userDeleted = await this.prisma.user.delete({
       where: { id },
     });
+
+    return {
+      message: `Usuário {${userDeleted.name}} deletado com sucesso!`,
+    };
   }
 }
