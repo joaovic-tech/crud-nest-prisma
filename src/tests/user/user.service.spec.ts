@@ -3,23 +3,18 @@ import { TestingModule, Test } from '@nestjs/testing';
 import { PrismaService } from 'prisma.service';
 import { Logger } from '@nestjs/common';
 import { UserEntity } from 'modules/user/entities/user.entity';
+import { CreateUserDto } from 'modules/user/dto/create-user.dto';
 
-const userData = () => {
-  return {
+describe('UserService', () => {
+  const mockUser: CreateUserDto = {
     email: 'teste@teste.com',
     name: 'tester',
     password: 'tester@s12',
   };
-};
-
-const generatedUserTesterDB = () => {
-  return {
+  const mockUserToDB = {
     id: 1,
-    ...userData(),
+    ...mockUser,
   };
-};
-
-describe('UserService', () => {
   let service: UserService;
   const prismaMock = {
     user: {
@@ -48,25 +43,21 @@ describe('UserService', () => {
   });
 
   it('Should create a user successfully with correct data', async () => {
-    const userTester = generatedUserTesterDB();
+    prismaMock.user.create.mockResolvedValue(mockUserToDB);
 
-    prismaMock.user.create.mockResolvedValue(userTester);
-
-    const result = await service.create(userTester);
+    const result = await service.create(mockUserToDB);
     expect(result).toEqual(
       expect.objectContaining({
-        name: userTester.name,
-        email: userTester.email,
+        name: mockUserToDB.name,
+        email: mockUserToDB.email,
       }),
     );
   });
 
   it('Should hash the password before saving to database', async () => {
-    const userTester = generatedUserTesterDB();
+    prismaMock.user.create.mockResolvedValue(mockUserToDB);
 
-    prismaMock.user.create.mockResolvedValue(userTester);
-
-    await service.create(userTester);
+    await service.create(mockUserToDB);
 
     expect(prismaMock.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -90,46 +81,42 @@ describe('UserService', () => {
   });
 
   it('Should find a user by unique input', async () => {
-    const userFromDb = generatedUserTesterDB();
-    prismaMock.user.findUniqueOrThrow.mockResolvedValue(userFromDb);
+    prismaMock.user.findUniqueOrThrow.mockResolvedValue(mockUserToDB);
 
-    const result = await service.findOne({ id: userFromDb.id });
+    const result = await service.findOne({ id: mockUserToDB.id });
 
     expect(result).toEqual({
-      id: userFromDb.id,
-      email: userFromDb.email,
-      name: userFromDb.name,
+      id: mockUserToDB.id,
+      email: mockUserToDB.email,
+      name: mockUserToDB.name,
     });
     expect(prismaMock.user.findUniqueOrThrow).toHaveBeenCalledWith({
-      where: { id: userFromDb.id },
+      where: { id: mockUserToDB.id },
     });
   });
 
   it('Should update user data', async () => {
-    const data = userData();
-    const userFromDb = generatedUserTesterDB();
-    prismaMock.user.update.mockResolvedValue(userFromDb);
+    prismaMock.user.update.mockResolvedValue(mockUserToDB);
 
-    const result = await service.update(userFromDb.id, data);
+    const result = await service.update(mockUserToDB.id, mockUser);
 
-    expect(result.email).toEqual(userFromDb.email);
+    expect(result.email).toEqual(mockUserToDB.email);
     expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: userFromDb.id },
-      data: data,
+      where: { id: mockUserToDB.id },
+      data: mockUser,
     });
   });
 
   it('Should delete user', async () => {
-    const userFromDb = generatedUserTesterDB();
-    prismaMock.user.delete.mockResolvedValue(userFromDb);
+    prismaMock.user.delete.mockResolvedValue(mockUserToDB);
 
-    const createdUser = await service.create(userFromDb);
+    const createdUser = await service.create(mockUserToDB);
 
     expect(createdUser).not.toBeNull();
 
-    const result = await service.remove(userFromDb.id);
+    const result = await service.remove(mockUserToDB.id);
     expect(result).toEqual({
-      message: `Usuário {${userFromDb.name}} deletado com sucesso!`,
+      message: `Usuário {${mockUserToDB.name}} deletado com sucesso!`,
     });
   });
 });
