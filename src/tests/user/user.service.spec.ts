@@ -29,7 +29,7 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
   });
 
-  test('Should create a user successfully with correct data', async () => {
+  it('Should create a user successfully with correct data', async () => {
     const userDTO = new CreateUserDto();
     userDTO.email = 'test@test.com';
     userDTO.name = 'tester';
@@ -48,7 +48,7 @@ describe('UserService', () => {
     );
   });
 
-  test('Should hash the password before saving to database', async () => {
+  it('Should hash the password before saving to database', async () => {
     const userDTO = new CreateUserDto();
     userDTO.email = 'test@test.com';
     userDTO.name = 'tester';
@@ -69,7 +69,7 @@ describe('UserService', () => {
     );
   });
 
-  test('Should list user without password', async () => {
+  it('Should list user without password', async () => {
     const usersFromDb = [
       { id: 1, name: 'tester', email: 'test@test.com' },
       { id: 2, name: 'tester2', email: 'test2@test2.com' },
