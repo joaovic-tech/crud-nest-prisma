@@ -10,7 +10,7 @@ import { UserEntity } from './entities/user.entity';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: CreateUserDto): Promise<UserEntity> {
+  public create = async (data: CreateUserDto): Promise<UserEntity> => {
     const hashedPassword = await argon2.hash(data.password);
 
     const newUser = await this.prisma.user.create({
@@ -26,9 +26,9 @@ export class UserService {
       email: newUser.email,
       name: newUser.name,
     };
-  }
+  };
 
-  async findAll(): Promise<UserEntity[]> {
+  public findAll = async (): Promise<UserEntity[]> => {
     const users = await this.prisma.user.findMany();
 
     return users.map((user) => {
@@ -40,11 +40,11 @@ export class UserService {
 
       return userEntity;
     });
-  }
+  };
 
-  async findOne(
+  public findOne = async (
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<UserEntity> {
+  ): Promise<UserEntity> => {
     const { id, email, name } = await this.prisma.user.findUniqueOrThrow({
       where: userWhereUniqueInput,
     });
@@ -56,9 +56,12 @@ export class UserService {
     };
 
     return userEntity;
-  }
+  };
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
+  public update = async (
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserEntity> => {
     const { email, name } = await this.prisma.user.update({
       where: { id },
       data: { ...updateUserDto },
@@ -71,9 +74,9 @@ export class UserService {
     };
 
     return userEntity;
-  }
+  };
 
-  async remove(id: number) {
+  public remove = async (id: number) => {
     const userDeleted = await this.prisma.user.delete({
       where: { id },
     });
@@ -81,5 +84,5 @@ export class UserService {
     return {
       message: `Usuário {${userDeleted.name}} deletado com sucesso!`,
     };
-  }
+  };
 }

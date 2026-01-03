@@ -16,7 +16,6 @@ describe('UserService', () => {
     id: 1,
     ...mockUserDTO,
   };
-  let service: UserService;
   const prismaMock = {
     user: {
       create: jest.fn().mockResolvedValue(mockUserToDB),
@@ -27,6 +26,7 @@ describe('UserService', () => {
       delete: jest.fn().mockResolvedValue(mockUserToDB),
     },
   };
+  let service: UserService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
