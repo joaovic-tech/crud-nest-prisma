@@ -8,11 +8,13 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../../modules/user/user.service';
 import { CreateUserDto } from '../../modules/user/dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'modules/auth/jwt-auth.guard';
 
 @Controller()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -20,6 +22,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('users')
+  @UseGuards(JwtAuthGuard)
   public async findAll(): Promise<UserEntity[]> {
     return await this.userService.findAll();
   }
@@ -32,11 +35,13 @@ export class UserController {
   }
 
   @Get('user/:id')
+  @UseGuards(JwtAuthGuard)
   public async findOne(@Param('id') id: number): Promise<UserEntity> {
     return await this.userService.findOne({ id: +id });
   }
 
   @Put('user/:id')
+  @UseGuards(JwtAuthGuard)
   public async update(
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -45,6 +50,7 @@ export class UserController {
   }
 
   @Delete('user/:id')
+  @UseGuards(JwtAuthGuard)
   public async remove(@Param('id') id: number) {
     return await this.userService.remove(+id);
   }
