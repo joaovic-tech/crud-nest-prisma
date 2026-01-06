@@ -28,9 +28,15 @@ export class BookService {
 
   async findAll(): Promise<BookEntity[]> {
     const books = await this.prisma.book.findMany();
-    return books.map((book) => ({
-      ...book,
+    const bookEntities: BookEntity[] = books.map((book) => ({
+      title: book.title,
+      author: book.author,
+      date: book.date,
+      pageNumbers: book.pageNumbers,
+      isPublic: book.isPublic,
+      userId: book.userId,
     }));
+    return bookEntities;
   }
 
   findOne(id: number) {
