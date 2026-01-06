@@ -69,22 +69,25 @@ describe('BookService', () => {
         isPublic: true,
         pageNumbers: 200,
       },
+      {
+        title: 'Test Book - Private',
+        author: 'Test Author 2',
+        date: new Date('2024-02-02'),
+        isPublic: false,
+        pageNumbers: 200,
+      },
     ];
     prismaMock.book.findMany.mockResolvedValue(mockBooks);
     const result = await service.findAll();
 
-    expect(result).toEqual(mockBooks);
-    expect(prismaMock.book.findMany).toHaveBeenCalled();
     expect(result).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          title: 'Test Book 2',
-          author: 'Test Author 2',
-          date: new Date('2024-02-02'),
-          isPublic: true,
-          pageNumbers: 200,
-        }),
+        expect.objectContaining(mockBooks[0]),
+        expect.objectContaining(mockBooks[1]),
       ]),
     );
+    expect(prismaMock.book.findMany).toHaveBeenCalledWith({
+      where: { isPublic: true },
+    });
   });
 });

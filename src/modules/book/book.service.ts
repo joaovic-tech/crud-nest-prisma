@@ -27,14 +27,13 @@ export class BookService {
   }
 
   async findAll(): Promise<BookEntity[]> {
-    const books = await this.prisma.book.findMany();
+    const books = await this.prisma.book.findMany({
+      where: {
+        isPublic: true,
+      },
+    });
     const bookEntities: BookEntity[] = books.map((book) => ({
-      title: book.title,
-      author: book.author,
-      date: book.date,
-      pageNumbers: book.pageNumbers,
-      isPublic: book.isPublic,
-      userId: book.userId,
+      ...book,
     }));
     return bookEntities;
   }
