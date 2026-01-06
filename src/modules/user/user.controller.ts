@@ -22,7 +22,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('users')
-  @UseGuards(JwtAuthGuard)
   public async findAll(): Promise<UserEntity[]> {
     return await this.userService.findAll();
   }

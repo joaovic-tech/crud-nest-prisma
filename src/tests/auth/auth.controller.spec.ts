@@ -29,6 +29,7 @@ describe('AuthController', () => {
 
   it('should generated bearer token', async () => {
     const authUserEntity: AuthUserEntity = {
+      id: 1,
       email: 'test@example.com',
       password: 'password',
     };

@@ -9,6 +9,7 @@ import { PrismaService } from 'prisma.service';
 describe('AuthService', () => {
   let service: AuthService;
   const mockAuthUserEntity: AuthUserEntity = {
+    id: 1,
     email: 'test@example.com',
     password: 'password',
   };

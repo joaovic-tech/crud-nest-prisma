@@ -5,9 +5,11 @@ import { PrismaClientExceptionFilter } from 'filters/prisma-client-exception.fil
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
   const { httpAdapter } = app.get(HttpAdapterHost);
+
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
+
   await app.listen(process.env.PORT ?? 3000);
 }
 
