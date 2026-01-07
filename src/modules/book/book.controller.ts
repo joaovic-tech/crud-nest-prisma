@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  // Patch,
+  Patch,
   Param,
   Delete,
   UseGuards,
@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
-// import { UpdateBookDto } from './dto/update-book.dto';
+import { UpdateBookDto } from './dto/update-book.dto';
 import { JwtAuthGuard } from 'modules/auth/jwt-auth.guard';
 import { BookEntity } from './entities/book.entity';
 import { CurrentUser } from 'modules/auth/decorator/current-user.decorator';
@@ -29,7 +29,7 @@ export class BookController {
     @Body() createBookDto: CreateBookDto,
     @CurrentUser() user: CurrentUserDto,
   ): Promise<BookEntity> {
-    const userId = user.userId;
+    const userId = user.id;
     return this.bookService.create(createBookDto, userId);
   }
 
@@ -43,15 +43,19 @@ export class BookController {
     return this.bookService.findOne(+id);
   }
 
-  // @Patch(':id')
-  // @UseGuards(JwtAuthGuard)
-  // update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
-  //   return this.bookService.update(+id, updateBookDto);
-  // }
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  update(
+    @Param('id') id: string,
+    @Body() updateBookDto: UpdateBookDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    return this.bookService.update(+id, updateBookDto, user);
+  }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.bookService.remove(+id);
+  remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    return this.bookService.remove(+id, user);
   }
 }

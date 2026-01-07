@@ -5,9 +5,9 @@
 5. [ ] CRUD do Book
    - [x] Create
      - [x] Criar testes para create
-   - [ ] Read all and One
+   - [x] Read all and One
      - [x] Criar teste para o findAll - `book.service.ts`
-     - [ ] Criar teste para o findOne - `book.service.ts`
+     - [x] Criar teste para o findOne - `book.service.ts`
    - [ ] Update
      - [ ] Criar teste para o update - `book.service.ts`
    - [ ] Delete

@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
-// import { UpdateBookDto } from './dto/update-book.dto';
+import { UpdateBookDto } from './dto/update-book.dto';
 import { BookEntity } from './entities/book.entity';
 import { PrismaService } from 'prisma.service';
+import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
 
 @Injectable()
 export class BookService {
@@ -38,14 +39,40 @@ export class BookService {
     return new BookEntity(book);
   }
 
-  // update(id: number, updateBookDto: UpdateBookDto) {
-  //   return {
-  //     id: id,
-  //     data: updateBookDto,
-  //   };
-  // }
+  async update(
+    id: number,
+    updateBookDto: UpdateBookDto,
+    currentUser: CurrentUserDto,
+  ): Promise<BookEntity> {
+    const book = await this.prisma.book.findUniqueOrThrow({
+      where: { id },
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} book`;
+    if (currentUser.id !== book.userId) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const updatedBook = await this.prisma.book.update({
+      where: { id: id },
+      data: updateBookDto,
+    });
+
+    return new BookEntity(updatedBook);
+  }
+
+  async remove(id: number, currentUser: CurrentUserDto): Promise<BookEntity> {
+    const book = await this.prisma.book.findUniqueOrThrow({
+      where: { id },
+    });
+
+    if (currentUser.id !== book.userId) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const deletedBook = await this.prisma.book.delete({
+      where: { id: id },
+    });
+
+    return new BookEntity(deletedBook);
   }
 }
