@@ -19,31 +19,30 @@ export class BookService {
         userId: user.id,
       },
     });
-
-    const bookEntity: BookEntity = {
-      ...newBook,
-    };
-    return bookEntity;
+    return new BookEntity(newBook);
   }
 
   async findAll(): Promise<BookEntity[]> {
-    const books = await this.prisma.book.findMany({
+    const books: BookEntity[] = await this.prisma.book.findMany({
       where: {
         isPublic: true,
       },
     });
-    const bookEntities: BookEntity[] = books.map((book) => ({
-      ...book,
-    }));
-    return bookEntities;
+    return books.map((book) => new BookEntity(book));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} book`;
+  async findOne(id: number): Promise<BookEntity> {
+    const book = await this.prisma.book.findUniqueOrThrow({
+      where: { id: id, isPublic: true },
+    });
+    return new BookEntity(book);
   }
 
   // update(id: number, updateBookDto: UpdateBookDto) {
-  //   return `This action updates a #${id} book`;
+  //   return {
+  //     id: id,
+  //     data: updateBookDto,
+  //   };
   // }
 
   remove(id: number) {

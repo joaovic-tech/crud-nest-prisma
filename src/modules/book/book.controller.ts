@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -17,6 +19,7 @@ import { CurrentUser } from 'modules/auth/decorator/current-user.decorator';
 import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
 
 @Controller('book')
+@UseInterceptors(ClassSerializerInterceptor)
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
@@ -36,7 +39,6 @@ export class BookController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.bookService.findOne(+id);
   }
