@@ -1,4 +1,7 @@
+import { ClassSerializerInterceptor } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
+import { instanceToPlain } from 'class-transformer';
 import { BookService } from 'modules/book/book.service';
 import { CreateBookDto } from 'modules/book/dto/create-book.dto';
 import { BookEntity } from 'modules/book/entities/book.entity';
@@ -17,6 +20,7 @@ describe('BookService', () => {
     book: {
       create: jest.fn(),
       findMany: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
     },
     user: {
       findUniqueOrThrow: jest.fn(),
@@ -28,6 +32,10 @@ describe('BookService', () => {
       providers: [
         BookService,
         { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: APP_INTERCEPTOR,
+          useClass: ClassSerializerInterceptor,
+        },
       ],
     }).compile();
 
@@ -89,5 +97,24 @@ describe('BookService', () => {
     expect(prismaMock.book.findMany).toHaveBeenCalledWith({
       where: { isPublic: true },
     });
+  });
+
+  it('Should find a book by unique input', async () => {
+    const mockBook = {
+      id: 1,
+      title: 'Test Book',
+      author: 'Test Author',
+      date: new Date('2024-02-02'),
+      isPublic: true,
+      pageNumbers: 200,
+      userId: 1,
+    };
+    prismaMock.book.findUniqueOrThrow.mockResolvedValue(mockBook);
+    const result = await service.findOne(1);
+    const plain = instanceToPlain(result);
+
+    expect(result).toBeInstanceOf(BookEntity);
+    expect(plain).not.toHaveProperty('id');
+    expect(plain).not.toHaveProperty('userId');
   });
 });
