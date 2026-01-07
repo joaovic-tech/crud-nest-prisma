@@ -3,29 +3,18 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { instanceToPlain } from 'class-transformer';
 import { BookService } from 'modules/book/book.service';
-import { CreateBookDto } from 'modules/book/dto/create-book.dto';
 import { BookEntity } from 'modules/book/entities/book.entity';
 import { PrismaService } from 'prisma.service';
+import {
+  mockBook,
+  mockBookDTO,
+  mockBooks,
+  mockBookToUpdated,
+  prismaMock,
+} from './mock';
 
 describe('BookService', () => {
   let service: BookService;
-  const mockBookDTO: CreateBookDto = {
-    title: 'Test Book',
-    author: 'Test Author',
-    date: new Date('2024-01-01'),
-    isPublic: true,
-    pageNumbers: 100,
-  };
-  const prismaMock = {
-    book: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUniqueOrThrow: jest.fn(),
-    },
-    user: {
-      findUniqueOrThrow: jest.fn(),
-    },
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -62,29 +51,6 @@ describe('BookService', () => {
   });
 
   it('should find all books and return an array of book entities', async () => {
-    const mockBooks = [
-      {
-        title: 'Test Book',
-        author: 'Test Author',
-        date: new Date('2024-01-01'),
-        isPublic: true,
-        pageNumbers: 100,
-      },
-      {
-        title: 'Test Book 2',
-        author: 'Test Author 2',
-        date: new Date('2024-02-02'),
-        isPublic: true,
-        pageNumbers: 200,
-      },
-      {
-        title: 'Test Book - Private',
-        author: 'Test Author 2',
-        date: new Date('2024-02-02'),
-        isPublic: false,
-        pageNumbers: 200,
-      },
-    ];
     prismaMock.book.findMany.mockResolvedValue(mockBooks);
     const result = await service.findAll();
 
@@ -100,15 +66,6 @@ describe('BookService', () => {
   });
 
   it('Should find a book by unique input', async () => {
-    const mockBook = {
-      id: 1,
-      title: 'Test Book',
-      author: 'Test Author',
-      date: new Date('2024-02-02'),
-      isPublic: true,
-      pageNumbers: 200,
-      userId: 1,
-    };
     prismaMock.book.findUniqueOrThrow.mockResolvedValue(mockBook);
     const result = await service.findOne(1);
     const plain = instanceToPlain(result);
@@ -116,5 +73,54 @@ describe('BookService', () => {
     expect(result).toBeInstanceOf(BookEntity);
     expect(plain).not.toHaveProperty('id');
     expect(plain).not.toHaveProperty('userId');
+  });
+
+  it('should update book if user is owner', async () => {
+    prismaMock.book.findUniqueOrThrow.mockResolvedValue({ id: 1, userId: 1 });
+    prismaMock.book.update.mockResolvedValue(mockBookToUpdated);
+
+    const user = { id: 1, email: 'test@test.com' };
+    const result = await service.update(1, mockBookToUpdated, user);
+    const plain = instanceToPlain(result);
+
+    expect(result).toBeInstanceOf(BookEntity);
+    expect(plain).not.toHaveProperty('id');
+    expect(plain).not.toHaveProperty('userId');
+    expect(prismaMock.book.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: mockBookToUpdated,
+    });
+  });
+
+  it('should throw error if user is not owner', async () => {
+    prismaMock.book.findUniqueOrThrow.mockResolvedValue({ id: 1, userId: 2 });
+    const user = { id: 1, email: 'test@test.com' };
+    await expect(service.update(1, mockBookToUpdated, user)).rejects.toThrow(
+      'Invalid credentials',
+    );
+  });
+
+  it('should delete book if user is owner', async () => {
+    prismaMock.book.findUniqueOrThrow.mockResolvedValue({ id: 1, userId: 1 });
+    prismaMock.book.delete.mockResolvedValue(mockBookToUpdated);
+
+    const user = { id: 1, email: 'test@test.com' };
+    const result = await service.remove(1, user);
+    const plain = instanceToPlain(result);
+
+    expect(result).toBeInstanceOf(BookEntity);
+    expect(plain).not.toHaveProperty('id');
+    expect(plain).not.toHaveProperty('userId');
+    expect(prismaMock.book.delete).toHaveBeenCalledWith({
+      where: { id: 1 },
+    });
+  });
+
+  it('should throw error if user is not owner', async () => {
+    prismaMock.book.findUniqueOrThrow.mockResolvedValue({ id: 1, userId: 2 });
+    const user = { id: 1, email: 'test@test.com' };
+    await expect(service.remove(1, user)).rejects.toThrow(
+      'Invalid credentials',
+    );
   });
 });
