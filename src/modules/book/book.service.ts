@@ -9,7 +9,10 @@ import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
 export class BookService {
   constructor(private prisma: PrismaService) {}
 
-  async create(bookDTO: CreateBookDto, userId: number): Promise<BookEntity> {
+  public create = async (
+    bookDTO: CreateBookDto,
+    userId: number,
+  ): Promise<BookEntity> => {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
@@ -21,29 +24,29 @@ export class BookService {
       },
     });
     return new BookEntity(newBook);
-  }
+  };
 
-  async findAll(): Promise<BookEntity[]> {
+  public findAll = async (): Promise<BookEntity[]> => {
     const books: BookEntity[] = await this.prisma.book.findMany({
       where: {
         isPublic: true,
       },
     });
     return books.map((book) => new BookEntity(book));
-  }
+  };
 
-  async findOne(id: number): Promise<BookEntity> {
+  public findOne = async (id: number): Promise<BookEntity> => {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id: id, isPublic: true },
     });
     return new BookEntity(book);
-  }
+  };
 
-  async update(
+  public update = async (
     id: number,
     updateBookDto: UpdateBookDto,
     currentUser: CurrentUserDto,
-  ): Promise<BookEntity> {
+  ): Promise<BookEntity> => {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id },
     });
@@ -58,9 +61,12 @@ export class BookService {
     });
 
     return new BookEntity(updatedBook);
-  }
+  };
 
-  async remove(id: number, currentUser: CurrentUserDto): Promise<BookEntity> {
+  public remove = async (
+    id: number,
+    currentUser: CurrentUserDto,
+  ): Promise<BookEntity> => {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id },
     });
@@ -74,5 +80,5 @@ export class BookService {
     });
 
     return new BookEntity(deletedBook);
-  }
+  };
 }

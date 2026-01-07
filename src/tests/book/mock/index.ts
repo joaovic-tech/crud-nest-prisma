@@ -1,6 +1,9 @@
+import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
 import { CreateBookDto } from 'modules/book/dto/create-book.dto';
+import { UpdateBookDto } from 'modules/book/dto/update-book.dto';
+import { BookEntity } from 'modules/book/entities/book.entity';
 
-export const mockBookDTO: CreateBookDto = {
+export const createBookDto: CreateBookDto = {
   title: 'Test Book',
   author: 'Test Author',
   date: new Date('2024-01-01'),
@@ -8,13 +11,21 @@ export const mockBookDTO: CreateBookDto = {
   pageNumbers: 100,
 };
 
+export const mockBookEntity = new BookEntity(createBookDto);
+
+export const mockBookDB = {
+  id: 1,
+  userId: 1,
+  ...createBookDto,
+};
+
+export const mockBookToUpdated: UpdateBookDto = new UpdateBookDto(
+  createBookDto,
+);
+
 export const mockBooks = [
   {
-    title: 'Test Book',
-    author: 'Test Author',
-    date: new Date('2024-01-01'),
-    isPublic: true,
-    pageNumbers: 100,
+    ...createBookDto,
   },
   {
     title: 'Test Book 2',
@@ -32,31 +43,7 @@ export const mockBooks = [
   },
 ];
 
-export const mockBook = {
+export const mockUser: CurrentUserDto = {
   id: 1,
-  title: 'Test Book',
-  author: 'Test Author',
-  date: new Date('2024-02-02'),
-  isPublic: true,
-  pageNumbers: 200,
-  userId: 1,
-};
-
-export const mockBookToUpdated = {
-  id: 1,
-  userId: 1,
-  title: 'New Title',
-};
-
-export const prismaMock = {
-  book: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUniqueOrThrow: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-  user: {
-    findUniqueOrThrow: jest.fn(),
-  },
+  email: 'test@test.com',
 };
