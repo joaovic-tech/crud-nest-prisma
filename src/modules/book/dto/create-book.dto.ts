@@ -31,4 +31,8 @@ export class CreateBookDto {
   @IsNotEmpty()
   @IsBoolean()
   isPublic: boolean;
+
+  constructor(partial: Partial<CreateBookDto>) {
+    Object.assign(this, partial);
+  }
 }

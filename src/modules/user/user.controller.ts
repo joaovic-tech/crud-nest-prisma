@@ -10,11 +10,11 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { UserService } from '../../modules/user/user.service';
-import { CreateUserDto } from '../../modules/user/dto/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'modules/auth/jwt-auth.guard';
+import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller()
 @UseInterceptors(ClassSerializerInterceptor)
@@ -35,14 +35,14 @@ export class UserController {
 
   @Get('user/:id')
   @UseGuards(JwtAuthGuard)
-  public async findOne(@Param('id') id: number): Promise<UserEntity> {
-    return await this.userService.findOne({ id: +id });
+  public async findOne(@Param('id') id: string): Promise<UserEntity> {
+    return await this.userService.findById(+id);
   }
 
   @Put('user/:id')
   @UseGuards(JwtAuthGuard)
   public async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserEntity> {
     return await this.userService.update(+id, updateUserDto);
@@ -50,7 +50,7 @@ export class UserController {
 
   @Delete('user/:id')
   @UseGuards(JwtAuthGuard)
-  public async remove(@Param('id') id: number) {
+  public async remove(@Param('id') id: string) {
     return await this.userService.remove(+id);
   }
 }

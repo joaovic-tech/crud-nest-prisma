@@ -1,26 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../../modules/user/user.controller';
-import { UserService } from '../../modules/user/user.service';
-import { CreateUserDto } from '../../modules/user/dto/create-user.dto';
-import { UpdateUserDto } from '../../modules/user/dto/update-user.dto';
-import { UserEntity } from '../../modules/user/entities/user.entity';
+import { UserController } from 'modules/user/user.controller';
+import { UserService } from 'modules/user/user.service';
+import {
+  mockUserToCreated,
+  mockUserToDB,
+  mockUserToUpdated,
+} from 'tests/common/user.mock';
 
 describe('UserController', () => {
-  const mockUserEntity: UserEntity = {
-    id: 1,
-    email: 'test@example.com',
-    name: 'Test User',
-  };
   const mockUserService = {
-    create: jest.fn().mockResolvedValue(mockUserEntity),
-    findAll: jest.fn().mockResolvedValue([mockUserEntity]),
-    findOne: jest.fn().mockResolvedValue(mockUserEntity),
-    update: jest.fn().mockResolvedValue(mockUserEntity),
-    remove: jest
-      .fn()
-      .mockResolvedValue({ message: 'User deleted successfully' }),
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
   };
-  let service: UserService;
   let controller: UserController;
 
   beforeEach(async () => {
@@ -35,7 +29,6 @@ describe('UserController', () => {
     }).compile();
 
     controller = module.get<UserController>(UserController);
-    service = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
@@ -44,56 +37,54 @@ describe('UserController', () => {
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const createUserDto: CreateUserDto = {
-        email: 'test@example.com',
-        name: 'Test User',
-        password: 'password',
-      };
+      mockUserService.create.mockResolvedValue(mockUserToCreated);
 
-      const result = await controller.create(createUserDto);
+      const result = await controller.create(mockUserToCreated);
 
-      expect(result).toEqual(mockUserEntity);
-      expect(service.create).toHaveBeenCalledWith(createUserDto);
+      expect(result).toEqual(mockUserToCreated);
+      expect(mockUserService.create).toHaveBeenCalledWith(mockUserToCreated);
     });
   });
 
   describe('findAll', () => {
     it('should return an array of users', async () => {
+      mockUserService.findAll.mockResolvedValue([mockUserToDB]);
       const result = await controller.findAll();
 
-      expect(result).toEqual([mockUserEntity]);
-      expect(service.findAll).toHaveBeenCalled();
+      expect(result).toEqual([mockUserToDB]);
+      expect(mockUserService.findAll).toHaveBeenCalled();
     });
   });
 
-  describe('findOne', () => {
+  describe('findById', () => {
     it('should return a single user by id', async () => {
-      const result = await controller.findOne(1);
+      mockUserService.findById.mockResolvedValue(mockUserToDB);
+      const result = await controller.findOne('1');
 
-      expect(result).toEqual(mockUserEntity);
-      expect(mockUserService.findOne).toHaveBeenCalledWith({ id: 1 });
+      expect(result).toEqual(mockUserToDB);
+      expect(mockUserService.findById).toHaveBeenCalledWith(1);
     });
   });
 
   describe('update', () => {
     it('should update a user', async () => {
-      const updateUserDto: UpdateUserDto = {
-        name: 'Updated User',
-      };
+      mockUserService.update.mockResolvedValue(mockUserToDB);
+      const result = await controller.update('1', mockUserToUpdated);
 
-      const result = await controller.update(1, updateUserDto);
-
-      expect(result).toEqual(mockUserEntity);
-      expect(service.update).toHaveBeenCalledWith(1, updateUserDto);
+      expect(result).toEqual(mockUserToDB);
+      expect(mockUserService.update).toHaveBeenCalledWith(1, mockUserToUpdated);
     });
   });
 
   describe('remove', () => {
     it('should remove a user', async () => {
-      const result = await controller.remove(1);
+      mockUserService.remove.mockResolvedValue({
+        message: 'User deleted successfully',
+      });
+      const result = await controller.remove('1');
 
       expect(result).toEqual({ message: 'User deleted successfully' });
-      expect(service.remove).toHaveBeenCalledWith(1);
+      expect(mockUserService.remove).toHaveBeenCalledWith(1);
     });
   });
 });

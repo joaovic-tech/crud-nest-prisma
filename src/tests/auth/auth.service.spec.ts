@@ -1,19 +1,12 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { hash } from 'argon2';
 import { AuthService } from 'modules/auth/auth.service';
-import { AuthUserEntity } from 'modules/auth/entities/auth-user.entity';
-import { IUser } from 'modules/user/interface/user.interface';
 import { PrismaService } from 'prisma.service';
+import { mockAuthUserEntity } from 'tests/common/auth.mock';
+import { mockUserToDB } from 'tests/common/user.mock';
 
 describe('AuthService', () => {
   let service: AuthService;
-  const mockAuthUserEntity: AuthUserEntity = {
-    id: 1,
-    email: 'test@example.com',
-    password: 'password',
-  };
-
   const jwtServiceMock = {
     sign: jest.fn().mockReturnValue('mocked_token'),
   };
@@ -48,12 +41,6 @@ describe('AuthService', () => {
   });
 
   it('should sign in a user with valid credentials', async () => {
-    const mockUserToDB: IUser = {
-      id: 1,
-      name: 'tester',
-      email: mockAuthUserEntity.email,
-      password: await hash(mockAuthUserEntity.password),
-    };
     prismaMock.user.findUnique.mockResolvedValue(mockUserToDB);
 
     const result = await service.signIn(
@@ -76,12 +63,6 @@ describe('AuthService', () => {
   });
 
   it('should throw UnauthorizedException for invalid password', async () => {
-    const mockUserToDB: IUser = {
-      id: 1,
-      name: 'tester',
-      email: mockAuthUserEntity.email,
-      password: await hash(mockAuthUserEntity.password),
-    };
     prismaMock.user.findUnique.mockResolvedValue(mockUserToDB);
     await expect(
       service.signIn(mockAuthUserEntity.email, 'wrongpassword'),
