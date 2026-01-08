@@ -4,15 +4,16 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { BookEntity } from './entities/book.entity';
 import { PrismaService } from 'prisma.service';
 import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
+import { IBookService } from './interfaces/book-service.interface';
 
 @Injectable()
-export class BookService {
+export class BookService implements IBookService {
   constructor(private prisma: PrismaService) {}
 
-  public create = async (
+  public async create(
     bookDTO: CreateBookDto,
     userId: number,
-  ): Promise<BookEntity> => {
+  ): Promise<BookEntity> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
     });
@@ -24,29 +25,29 @@ export class BookService {
       },
     });
     return new BookEntity(newBook);
-  };
+  }
 
-  public findAll = async (): Promise<BookEntity[]> => {
+  public async findAll(): Promise<BookEntity[]> {
     const books: BookEntity[] = await this.prisma.book.findMany({
       where: {
         isPublic: true,
       },
     });
     return books.map((book) => new BookEntity(book));
-  };
+  }
 
-  public findOne = async (id: number): Promise<BookEntity> => {
+  public async findById(id: number): Promise<BookEntity> {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id: id, isPublic: true },
     });
     return new BookEntity(book);
-  };
+  }
 
-  public update = async (
+  public async update(
     id: number,
     updateBookDto: UpdateBookDto,
     currentUser: CurrentUserDto,
-  ): Promise<BookEntity> => {
+  ): Promise<BookEntity> {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id },
     });
@@ -61,12 +62,12 @@ export class BookService {
     });
 
     return new BookEntity(updatedBook);
-  };
+  }
 
-  public remove = async (
+  public async remove(
     id: number,
     currentUser: CurrentUserDto,
-  ): Promise<BookEntity> => {
+  ): Promise<BookEntity> {
     const book = await this.prisma.book.findUniqueOrThrow({
       where: { id },
     });
@@ -80,5 +81,5 @@ export class BookService {
     });
 
     return new BookEntity(deletedBook);
-  };
+  }
 }

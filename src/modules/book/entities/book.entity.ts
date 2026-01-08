@@ -5,7 +5,7 @@ export class BookEntity implements Book {
   @Exclude()
   id: number;
   @Exclude()
-  userId: number | null;
+  userId: number;
 
   title: string;
   author: string;

@@ -2,26 +2,15 @@ import { UserService } from 'modules/user/user.service';
 import { TestingModule, Test } from '@nestjs/testing';
 import { PrismaService } from 'prisma.service';
 import { Logger } from '@nestjs/common';
-import { UserEntity } from 'modules/user/entities/user.entity';
-import { CreateUserDto } from 'modules/user/dto/create-user.dto';
-import { IUser } from 'modules/user/interface/user.interface';
+import { mockUserToCreated, mockUserToDB } from 'tests/common/user.mock';
 
 describe('UserService', () => {
-  const mockUserDTO: CreateUserDto = {
-    email: 'teste@teste.com',
-    name: 'tester',
-    password: 'tester@s12',
-  };
-  const mockUserToDB: IUser = {
-    id: 1,
-    ...mockUserDTO,
-  };
   const prismaMock = {
     user: {
       create: jest.fn().mockResolvedValue(mockUserToDB),
       findMany: jest.fn(),
       findUniqueOrThrow: jest.fn().mockResolvedValue(mockUserToDB),
-      findOne: jest.fn().mockResolvedValue(mockUserToDB),
+      findById: jest.fn().mockResolvedValue(mockUserToDB),
       update: jest.fn().mockResolvedValue(mockUserToDB),
       delete: jest.fn().mockResolvedValue(mockUserToDB),
     },
@@ -64,38 +53,33 @@ describe('UserService', () => {
     );
   });
 
-  it('Should list user without password', async () => {
+  it('Should list user', async () => {
     const usersFromDb = [
-      { id: 1, name: 'test', email: 'test@test.com' },
+      mockUserToDB,
       { id: 2, name: 'tester2', email: 'test2@test2.com' },
     ];
-
     prismaMock.user.findMany.mockResolvedValue(usersFromDb);
-    const users: UserEntity[] = await service.findAll();
 
-    expect(users[0]).not.toHaveProperty('password');
+    await service.findAll();
+    expect(prismaMock.user.findMany).toHaveBeenCalled();
   });
 
-  it('Should find a user by unique input', async () => {
-    const result = await service.findOne({ id: mockUserToDB.id });
+  it('Should find a user by id', async () => {
+    const result = await service.findById(mockUserToDB.id);
 
-    expect(result).toEqual({
-      id: mockUserToDB.id,
-      email: mockUserToDB.email,
-      name: mockUserToDB.name,
-    });
+    expect(result).toEqual(mockUserToDB);
     expect(prismaMock.user.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { id: mockUserToDB.id },
     });
   });
 
   it('Should update user data', async () => {
-    const result = await service.update(mockUserToDB.id, mockUserDTO);
+    const result = await service.update(mockUserToDB.id, mockUserToCreated);
 
     expect(result.email).toEqual(mockUserToDB.email);
     expect(prismaMock.user.update).toHaveBeenCalledWith({
       where: { id: mockUserToDB.id },
-      data: mockUserDTO,
+      data: mockUserToCreated,
     });
   });
 

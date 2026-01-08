@@ -18,12 +18,12 @@ import { BookEntity } from './entities/book.entity';
 import { CurrentUser } from 'modules/auth/decorator/current-user.decorator';
 import { CurrentUserDto } from 'modules/auth/dto/current-user.dto';
 
-@Controller('book')
+@Controller()
 @UseInterceptors(ClassSerializerInterceptor)
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
-  @Post()
+  @Post('book')
   @UseGuards(JwtAuthGuard)
   create(
     @Body() createBookDto: CreateBookDto,
@@ -33,17 +33,17 @@ export class BookController {
     return this.bookService.create(createBookDto, userId);
   }
 
-  @Get()
+  @Get('books')
   findAll() {
     return this.bookService.findAll();
   }
 
-  @Get(':id')
+  @Get('book/:id')
   findOne(@Param('id') id: string) {
-    return this.bookService.findOne(+id);
+    return this.bookService.findById(+id);
   }
 
-  @Patch(':id')
+  @Patch('book/:id')
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
@@ -53,7 +53,7 @@ export class BookController {
     return this.bookService.update(+id, updateBookDto, user);
   }
 
-  @Delete(':id')
+  @Delete('book/:id')
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
     return this.bookService.remove(+id, user);

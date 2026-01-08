@@ -6,11 +6,11 @@ import { BookService } from 'modules/book/book.service';
 import { BookEntity } from 'modules/book/entities/book.entity';
 import { PrismaService } from 'prisma.service';
 import {
-  createBookDto,
   mockBookDB,
   mockBooks,
+  mockBookToCreated,
   mockBookToUpdated,
-} from './mock';
+} from '../common/book.mock';
 
 describe('BookService', () => {
   let service: BookService;
@@ -48,14 +48,14 @@ describe('BookService', () => {
 
   it('should create book and return the book entity', async () => {
     prismaMock.user.findUniqueOrThrow.mockResolvedValue({ id: 1 });
-    prismaMock.book.create.mockResolvedValue(createBookDto);
+    prismaMock.book.create.mockResolvedValue(mockBookToCreated);
 
-    const result: BookEntity = await service.create(createBookDto, 1);
+    const result: BookEntity = await service.create(mockBookToCreated, 1);
 
-    expect(result).toEqual(createBookDto);
+    expect(result).toEqual(mockBookToCreated);
     expect(prismaMock.book.create).toHaveBeenCalledWith({
       data: {
-        ...createBookDto,
+        ...mockBookToCreated,
         userId: 1,
       },
     });
@@ -78,7 +78,7 @@ describe('BookService', () => {
 
   it('Should find a book by unique input', async () => {
     prismaMock.book.findUniqueOrThrow.mockResolvedValue(mockBookDB);
-    const result = await service.findOne(1);
+    const result = await service.findById(1);
     const plain = instanceToPlain(result);
 
     expect(result).toBeInstanceOf(BookEntity);
